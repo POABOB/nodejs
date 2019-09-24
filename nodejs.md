@@ -184,7 +184,7 @@
 * Client端接受到返回數據，處理數據(頁面渲染、js執行)
 * 簡單範例
 
-`example\nodejs\http.js`
+`nodejs\example\http.js`
 ```gherkin=
 const http = require('http');
 
@@ -202,7 +202,7 @@ server.listen(8000);
 * 瀏覽器直接訪問，就發送get請求
 * 簡單範例
 
-`example\nodejs\get.js`
+`nodejs\example\get.js`
 ```gherkin=
 const http = require('http');
 const querystring = require('querystring');
@@ -231,7 +231,7 @@ console.log('Listening on port 8000');
 * 通過post data來傳遞數據
 * 瀏覽器無法直接訪問，需要寫JS或是使用postman
 * 簡單範例
-`example\nodejs\post.js`
+`nodejs\example\post.js`
 ```gherkin=
 const http = require('http');
 
@@ -260,7 +260,7 @@ console.log('Listening on port 8000');
 #### nodejs 處理路由
 
 * 簡單範例
-`example\nodejs\url.js`
+`nodejs\example\url.js`
 ```gherkin=
 const http = require('http');
 
@@ -279,8 +279,8 @@ console.log('Listening on port 8000');
 #### nodejs 綜合範例
 
 * 簡單範例
-`example\nodejs\index.js`
-```
+`nodejs\example\index.js`
+```gherkin=
 const http = require('http');
 const querystring = require('querystring');
 
@@ -324,8 +324,167 @@ console.log('Listening on port 8000');
 
 ### 搭建開發環境
 
+* 從0開始，不使用任何框架
+* 使用nodemon監測文件變化，自動重啟node
+* 使用cross-env設置環境變量，兼容mac、linux和windows
+* 在terminal 輸入，初始化並安裝
+```gherkin=
+npm init
+npm install nodemon cross-env --save-dev
+```
+* 並配置運行模式
+`nodejs\package.json`
+```gherkin=
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "cross-env NODE_ENV=dev nodemon ./bin/www.js",
+    "prd": "cross-env NODE_ENV=production pm2 ./bin/www.js"
+  },
+```
+* 運行指令
+```gherkin=
+npm run dev/prd...
+```
+* 簡單範例
+`nodejs\bin\www.js`
+```gherkin=
+const http = require('http');
+
+const PORT = 8000;
+const serverHandler = require('../app');
+
+const server = http.createServer(serverHandler);
+
+server.listen(PORT);
+console.log('Listening on port 8000');
+```
+
+`nodejs\app.js`
+```gherkin=
+const serverHandler = (req, res) => {
+	//設定返回格式為JSON
+	res.setHeader('Content-type', 'application/json');
+
+	const resData = {
+		method,
+		url,
+		path,
+		query,
+		env: process.env.NODE_ENV
+	};
+	res.end(JSON.stringify(resData));
+};
+
+module.exports = serverHandler;
+```
+
 ### 開發API(暫時不連接資料庫和登入)
 
+* 初始化路由: 根據之前方案設計，做出路由
+* 返回假數據: 將路由和數據處理分離，以符合設計原則
+* 範例
+`nodejs\app.js`
+```gherkin=
+const handleIndexRouter = require('./src/router/index');
+const handleUserRouter = require('./src/router/user');
+
+const serverHandler = (req, res) => {
+	//設定返回格式為JSON
+	res.setHeader('Content-type', 'application/json');
+
+	const url = req.url;
+	req.path = url.split('?')[0];
+
+	//處理index路由
+	const indexData = handleIndexRouter(req, res);
+	if(indexData) {
+		res.end(
+			JSON.stringify(indexData)
+		);
+		return;
+	}
+
+	//處理user路由
+	const userData = handleUserRouter(req, res);
+	if(userData) {
+		res.end(
+			JSON.stringify(userData)
+		);
+		return;
+	}
+
+	//不符合路由，返回404
+	res.writeHead(404, {"Content-type": "text/plain"});
+	res.write("404 Not Found\n");
+	res.end();
+};
+
+module.exports = serverHandler;
+```
+* 處理Blog的路由簡構
+`nodejs\src\router\index.js`
+```gherkin=
+const handleIndexRouter = (req, res) => {
+	const method = req.method;
+
+	//GET
+	//獲取Blog貼文
+	if(method === 'GET' && req.path === '/api/blog/list') {
+		return {
+			msg: '獲取Blog貼文'
+		};
+		// res.end(JSON.stringify(resData));
+	}
+
+	//獲取貼文詳情
+	if(method === 'GET' && req.path === '/api/blog/detail') {
+		return {
+			msg: '獲取貼文詳情'
+		};
+	}
+
+	//POST
+	//新增貼文
+	if(method === 'POST' && req.path === '/api/blog/new') {
+		return {
+			msg: '獲取貼文詳情'
+		};
+	}
+
+	//更新貼文
+	if(method === 'POST' && req.path === '/api/blog/update') {
+		return {
+			msg: '更新貼文'
+		};
+	}
+
+	//刪除貼文
+	if(method === 'POST' && req.path === '/api/blog/del') {
+		return {
+			msg: '刪除貼文'
+		};
+	}
+};
+
+module.exports = handleIndexRouter;
+```
+* 處理登入的路由簡構
+`nodejs\src\router\user.js`
+```gherkin=
+const handleUserRouter = (req, res) => {
+	const method = req.method;
+
+	//POST
+	//登入
+	if(method === 'POST' && req.path === '/api/user/login') {
+		return {
+			msg: '登入'
+		};
+	}
+};
+
+module.exports = handleUserRouter;
+```
 
 ## 登入和redis
 
