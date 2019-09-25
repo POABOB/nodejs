@@ -66,7 +66,7 @@
 > ECMAScript(ES)是語法規範
 > nodejs = ECMAScript(ES) + nodejs API
 
-* 補充
+* 補充ˇ
 
 > commonjs 模塊化
 	> require & exports
@@ -179,6 +179,7 @@
 
 #### http請求概述
 
+* 範例在tag v0.1之中
 * DNS解析，建立TCP連線，發送http請求
 * Server接受http請求，處理並返回
 * Client端接受到返回數據，處理數據(頁面渲染、js執行)
@@ -324,6 +325,7 @@ console.log('Listening on port 8000');
 
 ### 搭建開發環境
 
+* 範例在tag v0.2之中
 * 從0開始，不使用任何框架
 * 使用nodemon監測文件變化，自動重啟node
 * 使用cross-env設置環境變量，兼容mac、linux和windows
@@ -382,6 +384,9 @@ module.exports = serverHandler;
 
 * 初始化路由: 根據之前方案設計，做出路由
 * 返回假數據: 將路由和數據處理分離，以符合設計原則
+
+#### 路由簡構
+
 * 範例
 `nodejs\app.js`
 ```gherkin=
@@ -485,6 +490,69 @@ const handleUserRouter = (req, res) => {
 
 module.exports = handleUserRouter;
 ```
+
+#### 路由延伸(model, controller, promise)
+
+* 範例在tag v0.3之中
+* promise 處理範例
+`nodejs\nodejs\example\promise.js`
+```
+const fs = require('fs');
+const path = require('path');
+
+// // callback方式獲取一個文件內容
+// function getFileContent(fileName, callback) {
+// 	const fullFileName = path.resolve(__dirname, 'file', fileName);
+// 	fs.readFile(fullFileName, (err, data) => {
+// 		if(err) {
+// 			console.error(err);
+// 			return;
+// 		}
+// 		callback(
+// 			JSON.parse(data.toString())
+// 		);
+// 	});
+// }
+
+// // 測試 callback-hell
+// getFileContent('a.json', aData => {
+// 	console.log('a data', aData);
+// 	getFileContent(aData.next, bData => {
+// 		console.log('b data', bData);
+// 	});
+// });
+
+// promise方式獲取文件內容
+function getFileContent(fileName) {
+	const promise = new Promise((resolve, reject) => {
+		const fullFileName = path.resolve(__dirname, 'file', fileName);
+		fs.readFile(fullFileName, (err, data) => {
+			if(err) {
+				reject(err);
+				return;
+			}
+			resolve(
+				JSON.parse(data.toString())
+			);
+		});
+	});
+	return promise;
+}
+
+getFileContent('a.json').then(aData => {
+	console.log('a data', aData);
+	return getFileContent(aData.next);
+}).then(bData => {
+	console.log('b data', bData);
+	return getFileContent(bData.next);
+});
+```
+
+#### 總結
+
+* nodejs處理http請求的常用技能，ARC(google plugin)
+* nodejs開發Blog的API(未連接mysql，未使用登入)
+* router和controller分開用意
 
 ## 登入和redis
 
