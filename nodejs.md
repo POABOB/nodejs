@@ -496,7 +496,7 @@ module.exports = handleUserRouter;
 * 範例在tag v0.3之中
 * promise 處理範例
 `nodejs\nodejs\example\promise.js`
-```
+```gherkin=
 const fs = require('fs');
 const path = require('path');
 
@@ -554,7 +554,144 @@ getFileContent('a.json').then(aData => {
 * nodejs開發Blog的API(未連接mysql，未使用登入)
 * router和controller分開用意
 
-## 登入和redis
+## Mysql、登入和redis
+
+### mysql介紹、安裝和使用
+
+#### 介紹
+
+* web server中最流行的關係行資料庫
+* 官方網站可以免費下載，可用於學習
+* 輕量級，易學易用
+* 下載地址 https://dev.mysql.com/downloads/mysql/
+
+#### 安裝
+
+* 執行安裝
+* 如果需要輸入root用戶的密碼，要務必記住
+* 安裝mysql workbench(Client)，圖形化操作
+* 下載地址 https://dev.mysql.com/downloads/workbench/
+
+#### 使用
+
+* 開啟並輸入帳密
+* 查看現有資料庫
+	*　show databases;
+* 建資料庫
+	*　create schema `myDB`;
+* 建資料表
+	* users
+		* create table `myDB`.`users`(`id` int not null auto_increment, `name` varchar(20) not null, `password` varchar(126) not null, `create_at` datetime, primary key (`id`));
+	* blogs
+		* create table `myDB`.`blogs`(`id` int not null auto_increment, `title` varchar(52) not null, `content` longtext not null, `create_at` datetime, `author` varchar(20) not null, primary key (`id`));
+* 操作資料表
+	* 增
+		* INSERT INTO `users`( `name`, `password`) VALUES (`Bob`, `123456`)
+		* INSERT INTO `blogs`(`title`, `content`, `author`) VALUES (`我`, `吃變變`, `Bob`)
+
+	* 刪
+		* DELETE FROM `users` WHERE `id` = 1
+		* DELETE FROM `blogs` WHERE `id` = 1
+
+	* 改
+		* UPDATE `users` SET `id`=2,`name`=`POABOB` WHERE `id` = 1
+		* UPDATE `blogs` SET `id`=2,`title`=`ㄎㄎ`,`content`=`變遍布建ㄌ` WHERE `id` = 1
+
+	* 查
+		* SELECT * FROM `users` WHERE `id` = 1
+		* SELECT * FROM `blogs` WHERE `id` = 1
+
+#### 總結
+
+* 如何建資料庫，如何建資料表
+* 建資料表時常用資料類型(int bigint varchar longtext)
+* SQL語法實現增刪改查
+
+### nodejs連接mysql
+
+* 範例在tag v0.4之中
+* 範例: 用demo演示，不考慮使用
+* 封裝: 將其封裝成系統可用工具
+* 使用: 讓API直接操作資料庫，不再使用假資料
+
+#### 配置
+
+* 在'nodejs\\nodejs\\mysql-demo'輸入指令
+	* npm init -y
+	* npm install mysql
+
+### API連接mysql
+
+* 範例在tag v0.5之中
+* 範例
+`nodejs/nodejs/src/config/db.js`
+```gherkin=
+//環境參數
+const env = process.env.NODE_ENV;
+
+let MYSQL_CONF;
+
+if(env === 'dev') {
+	MYSQL_CONF = {
+			host: 'localhost',
+			user: 'root',
+			password: 'root',
+			port: '3306',
+			database: 'myDB'
+		};
+}
+
+if(env === 'production') {
+	MYSQL_CONF = {
+			host: 'localhost',
+			user: 'root',
+			password: 'root',
+			port: '3306',
+			database: 'myDB'
+		};
+}
+
+module.exports = {
+	MYSQL_CONF
+};
+
+```
+
+`nodejs/nodejs/src/db/mysql.js`
+```gherkin=
+const { MYSQL_CONF } = require('../config/db');
+const mysql = require('mysql');
+
+const conn = mysql.createConnection(MYSQL_CONF);
+
+conn.connect();
+
+function exec(sql) {
+	const promise = new Promise((resolve, reject) => {
+		conn.query(sql, (err, result) => {
+			if(err) {
+				reject(err);
+				return;
+			}
+			resolve(result);
+		});
+	});
+
+	return promise;
+}
+// conn.end();
+
+module.exports = {
+	exec
+}
+```
+
+#### 總結
+* nodejs 連接mysql，如何執行sq語法
+* 根據NODE_ENV區分配置
+* 封裝exec函數，API使用exec操作資料庫
+
+
 
 ## 安全和日誌
 

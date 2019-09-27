@@ -53,20 +53,24 @@ const serverHandler = (req, res) => {
 		req.body = postData;
 
 		//處理index路由
-		const indexData = handleIndexRouter(req, res);
-		if(indexData) {
-			res.end(
-				JSON.stringify(indexData)
-			);
+		const indexResult = handleIndexRouter(req, res);
+		if(indexResult) {
+			indexResult.then(indexData => {
+				res.end(
+					JSON.stringify(indexData)
+				);
+			});
 			return;
 		}
 
 		//處理user路由
-		const userData = handleUserRouter(req, res);
-		if(userData) {
-			res.end(
-				JSON.stringify(userData)
-			);
+		const userResult = handleUserRouter(req, res);
+		if(userResult) {
+			userResult.then(userData => {
+				res.end(
+					JSON.stringify(userData)
+				);
+			});
 			return;
 		}
 
