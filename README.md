@@ -719,6 +719,54 @@ module.exports = {
 	* 因為cookie會暴露重要的值，非常危險
 	* 如何解決，cookie儲存userid，server對應userid並給其值的session
 
+#### session寫入redis
+
+* session問題
+	* 目前session直接為js變量，放在nodejs進程內存中
+	* 一、進程內存有限，訪問量大，內存暴增會使系統崩饋潰
+	* 二、正式上線為多進程，進程間的內存無法共享
+* 解決方案redis
+	* web server最常用的緩存資料庫，資料將存放於內存中
+	* 相對於mysql，訪問速度更快(內存與硬碟處理效能差別極大)
+	* 相對成本較高，可儲存資料量更小(硬傷)
+	* 將web server和redis拆分成兩個單獨的服務
+	* 雙方皆為獨立，都是可以擴展(可擴展成集群)
+	* mysql，亦是一個單獨的服務，也可礦展
+* 為什麼session適合用redis?
+	* session訪問頻繁，對性能要求極大
+	* session可不考慮斷電丟失數據問題
+	* session資料量部會太大(相對於mysql)
+* 安裝redis
+	* 下載 https://github.com/MSOpenTech/redis/releases
+	* Mac使用brew install redis
+	* Linux參考 http://www.runoob.com/redis/redis-install.html
+* redis-server使用
+	* 開啟(已配置好環境變數)
+		* redis-server.exe redis.windows.conf
+* redis-cli使用
+	* 連線
+		* redis-cli.exe -h 127.0.0.1 -p 6379
+	* 插入session值
+		* set {key} {value}
+	* 獲取session值
+		* get {key}
+	* 獲取全部
+		* keys *
+	* 刪除session值
+		* del {key}
+* 用redis儲存session
+	* 範例在v0.6之中
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## 安全和日誌

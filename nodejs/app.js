@@ -1,4 +1,5 @@
 const querystring = require('querystring');
+const { get, set } = require('./src/db/redis');
 const handleIndexRouter = require('./src/router/index');
 const handleUserRouter = require('./src/router/user');
 
@@ -9,8 +10,8 @@ const getCookieExpires = () => {
 	return d.toGMTString();
 };
 
-//宣告SESSION資料
-const SESSION_DATA = {};
+// //宣告SESSION資料
+// const SESSION_DATA = {};
 
 const getPostData = (req) => {
 	const promise = new Promise((resolve, reject) => {
@@ -58,6 +59,8 @@ const serverHandler = (req, res) => {
 	//解析query
 	req.query = querystring.parse(url.split('?')[1]);
 
+
+	/*******************************/
 	//解析cookie
 	req.cookie = {};
 	const cookieStr = req.headers.cookie || ''; //k1=v1;k2=v3;...;
@@ -71,23 +74,51 @@ const serverHandler = (req, res) => {
 		req.cookie[key] = val;
 	});
 
-	//解析SESSION
+
+	/*******************************/
+	// //解析SESSION v0.5
+	// let needSetCookie = false;
+	// let userId = req.cookie.userid;
+	// if(userId) {
+	// 	if(!SESSION_DATA[userId]) {
+	// 		SESSION_DATA[userId] = {};
+	// 	}
+	// } else {
+	// 	needSetCookie = true;
+	// 	userId = `${Date.now()}_${Math.random()}`;
+	// 	SESSION_DATA[userId] = {};
+	// }
+
+	//解析SESSION(redis)
 	let needSetCookie = false;
 	let userId = req.cookie.userid;
-	if(userId) {
-		if(!SESSION_DATA[userId]) {
-			SESSION_DATA[userId] = {};
-		}
-	} else {
+	if(!userId) {
 		needSetCookie = true;
 		userId = `${Date.now()}_${Math.random()}`;
-		SESSION_DATA[userId] = {};
+		//初始化session(redis)
+		set(userId, {});
 	}
 
-	//處理POST data
-	getPostData(req).then(postData => {
+	//獲取session
+	req.sessionId = userId;
+	get(req.sessionId).then(sessionData => {
+		if(sessionData == null) {
+			//初始化session(redis)
+			set(req.sessionId, {});
+			//設置session
+			req.session = {};
+		} else {
+			req.session = sessionData;
+		}
+
+		//return promise之後處理post data
+		return getPostData(req);
+	})
+	.then(postData => {
 		req.body = postData;
 
+		//Router註冊
+		/*******************************/
 		//處理index路由
 		const indexResult = handleIndexRouter(req, res);
 		if(indexResult) {
@@ -102,6 +133,8 @@ const serverHandler = (req, res) => {
 			return;
 		}
 
+
+		/*******************************/
 		//處理user路由
 		const userResult = handleUserRouter(req, res);
 		if(userResult) {
@@ -116,6 +149,9 @@ const serverHandler = (req, res) => {
 			return;
 		}
 
+
+
+		/*******************************/
 		//不符合路由，返回404
 		res.writeHead(404, {"Content-type": "text/plain"});
 		res.write("404 Not Found\n");

@@ -1,5 +1,6 @@
 const { login } = require('../controller/user');
 const { SuccessModel, ErrorModel } = require('../model/resModel');
+const { get, set } = require('../db/redis');
 
 
 const handleUserRouter = (req, res) => {
@@ -15,6 +16,10 @@ const handleUserRouter = (req, res) => {
 
 				//設置session
 				res.session.name = data.name;
+
+				//同步redis
+				set(req.sessionId, req.session);
+
 				return new SuccessModel();
 			} else {
 				return new ErrorModel('login failed');
@@ -22,17 +27,6 @@ const handleUserRouter = (req, res) => {
 		});
 	}
 
-	//登入驗證測試
-	if(method === 'GET' && req.path === '/api/user/login2') {
-		if(req.session.name) {
-			return Promise.resolve(
-				new SuccessModel()
-			);
-		}
-		return Promise.resolve(
-				new ErrorModel('login failed')
-		);
-	}
 };
 
 module.exports = handleUserRouter;
