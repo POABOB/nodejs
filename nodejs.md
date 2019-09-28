@@ -554,7 +554,7 @@ getFileContent('a.json').then(aData => {
 * nodejs開發Blog的API(未連接mysql，未使用登入)
 * router和controller分開用意
 
-## Mysql、登入和redis
+## Mysql、登入(cookie)和redis
 
 ### mysql介紹、安裝和使用
 
@@ -687,9 +687,37 @@ module.exports = {
 ```
 
 #### 總結
+
 * nodejs 連接mysql，如何執行sq語法
 * 根據NODE_ENV區分配置
 * 封裝exec函數，API使用exec操作資料庫
+
+### 總結
+
+* 安裝Mysql和workbench
+* 創建資料庫、資料表、SQL語法和使用
+* nodejs連接Mysql，應用到API
+
+### 登入
+
+* cookie和session
+* session寫入redis
+* 開發登入功能，和前端微調(nginx反向代理)
+
+#### cookie和session
+
+* 範例在tag v0.5之中
+* 什麼是cookie
+	* 儲存於瀏覽器的一段字符串(最大5kb)
+	* 跨域不共享(每個網站cookie不相同)
+	* 格式如k1=v1;k2=v2;k3=v3，因此可以儲存結構化資料
+	* 每次翻送http請求，會將請求域的cookie一起發送給server
+	* server可以修改cookie並返回給瀏覽器
+	* 瀏覽器可以通過js修改cookie(有限制)
+* session
+	* 儲存於Server的字符串
+	* 因為cookie會暴露重要的值，非常危險
+	* 如何解決，cookie儲存userid，server對應userid並給其值的session
 
 
 

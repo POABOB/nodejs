@@ -1,7 +1,7 @@
 const { exec } = require('../db/mysql');
 
 const login = (name, password) => {
-	let sql = `select name password from users where name='${name}' and password='${password}';`;
+	let sql = `select name, password from users where name='${name}' and password='${password}';`;
 
 	return exec(sql).then(rows => {
 		return rows[0];

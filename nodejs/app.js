@@ -2,6 +2,16 @@ const querystring = require('querystring');
 const handleIndexRouter = require('./src/router/index');
 const handleUserRouter = require('./src/router/user');
 
+//獲取cookie過期時間
+const getCookieExpires = () => {
+	const d = new Date();
+	d.setTime(d.getTime() + (24 * 60 * 60 *1000));
+	return d.toGMTString();
+};
+
+//宣告SESSION資料
+const SESSION_DATA = {};
+
 const getPostData = (req) => {
 	const promise = new Promise((resolve, reject) => {
 		//如果方法不是POST，返回空
@@ -48,6 +58,32 @@ const serverHandler = (req, res) => {
 	//解析query
 	req.query = querystring.parse(url.split('?')[1]);
 
+	//解析cookie
+	req.cookie = {};
+	const cookieStr = req.headers.cookie || ''; //k1=v1;k2=v3;...;
+	cookieStr.split(';').forEach(item => {
+		if(!item) {
+			return;
+		}
+		const arr = item.split('=');
+		const key = arr[0].trim();
+		const val = arr[1].trim();
+		req.cookie[key] = val;
+	});
+
+	//解析SESSION
+	let needSetCookie = false;
+	let userId = req.cookie.userid;
+	if(userId) {
+		if(!SESSION_DATA[userId]) {
+			SESSION_DATA[userId] = {};
+		}
+	} else {
+		needSetCookie = true;
+		userId = `${Date.now()}_${Math.random()}`;
+		SESSION_DATA[userId] = {};
+	}
+
 	//處理POST data
 	getPostData(req).then(postData => {
 		req.body = postData;
@@ -56,6 +92,9 @@ const serverHandler = (req, res) => {
 		const indexResult = handleIndexRouter(req, res);
 		if(indexResult) {
 			indexResult.then(indexData => {
+				if(needSetCookie) {
+					res.setHeader('Set-Cookie', `userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`);
+				}
 				res.end(
 					JSON.stringify(indexData)
 				);
@@ -67,6 +106,9 @@ const serverHandler = (req, res) => {
 		const userResult = handleUserRouter(req, res);
 		if(userResult) {
 			userResult.then(userData => {
+				if(needSetCookie) {
+					res.setHeader('Set-Cookie', `userid=${userId}; path=/; httpOnly; expires=${getCookieExpires()}`);
+				}
 				res.end(
 					JSON.stringify(userData)
 				);
