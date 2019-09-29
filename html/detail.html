@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title class="T"></title>
+    <link rel="stylesheet" href="./assets/css/loading.css">
     <style type="text/css">
         body {
             margin: 0 20px;
@@ -30,12 +31,16 @@
     </style>
 </head>
 <body>
+    <div class="loading-wrapper">
+        <svg class="loading"><rect></rect></svg>
+    </div>
     <h1 id="title" class="title"></h1>
     <div id="info-container" class="info-container"></div>
     <div class="content-wrapper">
         <p id="content"></p>
     </div>
 
+    <script src="./assets/js/loading.js"></script>
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
     <script src="https://cdn.bootcss.com/moment.js/2.23.0/moment.min.js"></script>
     <script src="https://cdn.bootcss.com/moment.js/2.23.0/locale/zh-cn.js"></script>

@@ -4,19 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>登录</title>
+    <title>登入</title>
+    <link rel="stylesheet" href="./assets/css/loading.css">
 </head>
 <body>
+    <div class="loading-wrapper">
+        <svg class="loading"><rect></rect></svg>
+    </div>
     <div>
         <label>
-            用户名 <input type="text" id="textUsername"/>
+            姓名 <input type="text" id="textUsername"/>
         </label>
         <label>
-            密码 <input type="password" id="textPassword"/>
+            密碼 <input type="password" id="textPassword"/>
         </label>
-        <button id="btnLogin">登录</button>
+        <button id="btnLogin">登入</button>
     </div>
-
+    <script src="./assets/js/loading.js"></script>
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
     <script>
         // 发送 post 请求
@@ -29,6 +33,23 @@
             })
         }
 
+        function get(url) {
+            return $.ajax({
+                type: 'get',
+                url,
+                // data: JSON.stringify(data),
+                contentType: "application/json",
+            })
+        }
+        //一進來就執行
+        get('/api/user/loginCheck').then(res => {
+            if (res.errno === -1) {
+                // 已登入
+                location.href = './admin.html'
+            }
+        })
+
+
         $('#btnLogin').click(() => {
             const name = $('#textUsername').val()
             const password = $('#textPassword').val()
@@ -38,7 +59,6 @@
                 password
             }
             post(url, data).then(res => {
-                alert(res);
                 if (res.errno === 0) {
                     // 登录成功
                     location.href = './admin.html'

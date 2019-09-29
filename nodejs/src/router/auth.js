@@ -1,5 +1,5 @@
+const { ErrorModel } = require('../model/resModel');
 const auth = (req) => {
-	//登入驗證
 	if(!req.session.name) {
 		return Promise.resolve(
 			new ErrorModel('access denied')
@@ -7,8 +7,16 @@ const auth = (req) => {
 	}
 };
 
+const loginCheck = (req) => {
+	if(req.session.name) {
+		return Promise.resolve(
+			new ErrorModel('access denied')
+		);
+	}
+};
 
 
 module.exports = {
-	auth
+	auth,
+	loginCheck
 };

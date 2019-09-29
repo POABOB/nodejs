@@ -42,10 +42,28 @@ function get(key) {
 	return promise;
 }
 
-
+function del(key) {
+	const promise = new Promise((resolve, reject) => {
+		redisCli.del(key,(err, res) => {
+			if(err) {
+				reject(err);
+				return;
+			}
+			try {
+				resolve(
+					JSON.parse(res)
+				);
+			} catch(ex) {
+				resolve(res);
+			}
+		});
+	});
+	return promise;
+}
 
 module.exports = {
 	set,
-	get
+	get,
+	del
 }
 

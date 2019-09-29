@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>編輯貼文</title>
+    <link rel="stylesheet" href="./assets/css/loading.css">
     <style type="text/css">
         body {
             margin: 0 20px;
@@ -26,6 +27,9 @@
     </style>
 </head>
 <body>
+    <div class="loading-wrapper">
+        <svg class="loading"><rect></rect></svg>
+    </div>
     <h1 style="border-bottom: 1px solid #ccc; padding-bottom: 10px;">編輯貼文</h1>
     <div>
         <div class="title-wrapper">
@@ -41,6 +45,7 @@
         </div>
     </div>
 
+    <script src="./assets/js/loading.js"></script>
     <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
     <script type="text/javascript" src="./assets/wangeditor/wangEditor_fixed.js"></script>
     <script>

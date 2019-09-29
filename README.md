@@ -807,9 +807,57 @@ module.exports = {
 
 ## 安全和日誌
 
+### 日誌
 
+* 系統沒有日誌 = 沒有眼睛
+* 一、訪問日誌 access log (server最重要的)
+* 二、自定義日誌(自定義事件、錯誤紀錄...等)
 
+#### nodejs文件操作
 
+* 範例
+`nodejs\nodejs\example\file.js`
+```
+const fs = require('fs');
+const path = require('path');
+
+const fileName = path.resolve(__dirname, './file/data.txt');
+
+// //讀取文件
+// fs.readFile(fileName, (err, data) => {
+// 	if(err) {
+// 		console.log(err);
+// 		return;
+// 	}
+// 	//轉換為字符串
+// 	console.log(data.toString());
+// });
+
+// //寫入文件
+// const content = 'WRITTED';
+// const opt = {
+// 	flag: 'a'	//追加寫入，覆蓋用w
+// }
+// fs.writeFile(fileName, content, opt, (err) => {
+// 	if(err) {
+// 		console.log(err);
+// 	}
+
+// });
+
+// //判斷文件是否存在
+// fs.exists(fileName, (exists) => {
+// 	console.log(exists);
+// });
+```
+* I/O操作的性能瓶頸
+	* I/O，包括"網路"I/O和"文件"I/O
+	* 想比於CPU計算和內存讀寫，I/O特點就是"慢"
+	* 如何在有限情況下提高I/O操作效率
+
+#### 日誌功能開發和使用
+
+#### 日誌文件拆分，日誌內容分析
 
 
 
