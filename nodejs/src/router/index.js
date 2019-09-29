@@ -13,9 +13,21 @@ const handleIndexRouter = (req, res) => {
 	//GET
 	//獲取Blog貼文
 	if(method === 'GET' && req.path === '/api/blog/list') {
-		const author = req.query.author || '';
+		let author = req.query.author || '';
 		const keyword = req.query.keyword || '';
 
+		//判斷是不是admin
+		if(req.query.isadmin) {
+			//管理員介面
+			const loginCheck = auth(req);
+			if(loginCheck) {
+				//未登入
+				return loginCheck;
+			}
+
+			//查詢自己的貼文
+			author = req.session.name;
+		}
 		const result = getList(author, keyword);
 
 		return result.then(listData => {

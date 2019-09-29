@@ -15,7 +15,7 @@ const handleUserRouter = (req, res) => {
 			if(data.name) {
 
 				//設置session
-				res.session.name = data.name;
+				req.session.name = data.name;
 
 				//同步redis
 				set(req.sessionId, req.session);

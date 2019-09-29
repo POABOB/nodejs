@@ -9,4 +9,6 @@ const auth = (req) => {
 
 
 
-module.exports = auth;
+module.exports = {
+	auth
+};

@@ -702,7 +702,7 @@ module.exports = {
 
 * cookie和session
 * session寫入redis
-* 開發登入功能，和前端微調(nginx反向代理)
+* 開發登入功能，和前端聯調(nginx反向代理)
 
 #### cookie和session
 
@@ -721,6 +721,7 @@ module.exports = {
 
 #### session寫入redis
 
+* 範例在v0.7之中
 * session問題
 	* 目前session直接為js變量，放在nodejs進程內存中
 	* 一、進程內存有限，訪問量大，內存暴增會使系統崩饋潰
@@ -757,19 +758,74 @@ module.exports = {
 * 用redis儲存session
 	* 範例在v0.6之中
 
+#### 前端聯調
 
+* 登入功能依賴cookie，必須用瀏覽器來聯調
+* cookie跨域不共享，前端和server必須同域
+* nginx
+	* 修改/usr/local/etc/nginx/nginx.conf
+	```
+	# 根據幾核心填寫
+	worker_processes 2;
+	# 在server{}裡面修改location
+	location /nodejs/html/ {
+		proxy_pass http://localhost:80/nodejs/html/;
+	}
+	location /api/ {
+		proxy_pass http://localhost:8000;
+		proxy_set_header Host $host;
+	}
+	```
+* apache2
+	* 修改conf/httpd.conf，這些要註解掉
+	```
+	LoadModule proxy_module modules/mod_proxy.so
+	LoadModule proxy_connect_modulemodules/mod_proxy_connect.so
+	LoadModule proxy_ftp_modulemodules/mod_proxy_ftp.so
+	LoadModuleproxy_http_modulemodules/mod_proxy_http.so
+	```
+	* balancer如果沒有額外配置就不要開啟，apache會開不起來
+	* 然後到conf/httpd.conf最下面輸入
+	```
+	#反向代理
+	ProxyRequests Off
+	ProxyPass /api/ http://127.0.0.1:8000/api/
+	ProxyPassReverse /nodejs/html/ http://127.0.0.1:80/nodejs/html/
+	#80為apache的監聽埠
+	<proxy http://127.0.0.1:80>
+	  AllowOverride None
+	  Order Deny,Allow
+	  Allow from all
+	</proxy>
+	```
 
+#### 總結
 
-
-
-
-
-
-
-
-
+* cookie和session是什麼?如何實現登入
+* redis在這裡扮演甚麼角色，其核心價值是甚麼?
+* nginx的反向代理配置，聯調過程中的作用
 
 ## 安全和日誌
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## express和koa2
 
