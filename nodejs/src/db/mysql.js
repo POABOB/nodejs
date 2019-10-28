@@ -20,6 +20,10 @@ function exec(sql) {
 }
 // conn.end();
 
+
+
+
 module.exports = {
-	exec
+	exec,
+	escape: mysql.escape
 }

@@ -8,7 +8,7 @@ const server = http.createServer((req, res) => {
 		console.log('Content-type: ', req.headers['content-type']);
 		//接收數據
 		let postData = "";
-		req.on('data', chunk =>{
+		req.on('data', (chunk) =>{
 			postData += chunk.toString();
 		});
 		req.on('end', () => {

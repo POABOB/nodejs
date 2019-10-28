@@ -21,13 +21,14 @@ if(env === 'dev') {
 			user: 'root',
 			password: 'root',
 			port: '3306',
-			database: 'myDB'
+			database: 'mydb'
 		};
 	//mysql
 	REDIS_CONF = {
 		port: 6379,
 		host: '127.0.0.1'
 	};
+	LOG_CONF = true
 }
 
 if(env === 'production') {
@@ -42,9 +43,12 @@ if(env === 'production') {
 		port: 6379,
 		host: '127.0.0.1'
 	};
+
+	LOG_CONF = false
 }
 
 module.exports = {
 	MYSQL_CONF,
-	REDIS_CONF
+	REDIS_CONF,
+	LOG_CONF
 };

@@ -1,5 +1,6 @@
 const querystring = require('querystring');
 const { get, set } = require('./src/db/redis');
+const { access } = require('./src/utils/log')
 const handleIndexRouter = require('./src/router/index');
 const handleUserRouter = require('./src/router/user');
 
@@ -49,6 +50,9 @@ const getPostData = (req) => {
 
 
 const serverHandler = (req, res) => {
+	//寫access log
+	access(`${req.method} -- ${req.url} -- ${req.headers['user-agent']} -- ${Date.now()}`)
+
 	//設定返回格式為JSON
 	res.setHeader('Content-type', 'application/json');
 
