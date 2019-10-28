@@ -62,8 +62,7 @@
                 if (res.errno === 0) {
                     // 登录成功
                     location.href = './admin.html'
-                } else if (res === '') {
-                    alert('沒有請求')
+                    return;
                 }
                 else {
                     // 登录失败

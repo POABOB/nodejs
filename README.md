@@ -764,7 +764,7 @@ module.exports = {
 * cookie跨域不共享，前端和server必須同域
 * nginx
 	* 修改/usr/local/etc/nginx/nginx.conf
-	```
+	```gherkin=
 	# 根據幾核心填寫
 	worker_processes 2;
 	# 在server{}裡面修改location
@@ -778,7 +778,7 @@ module.exports = {
 	```
 * apache2
 	* 修改conf/httpd.conf，這些要註解掉
-	```
+	```gherkin=
 	LoadModule proxy_module modules/mod_proxy.so
 	LoadModule proxy_connect_modulemodules/mod_proxy_connect.so
 	LoadModule proxy_ftp_modulemodules/mod_proxy_ftp.so
@@ -786,7 +786,7 @@ module.exports = {
 	```
 	* balancer如果沒有額外配置就不要開啟，apache會開不起來
 	* 然後到conf/httpd.conf最下面輸入
-	```
+	```gherkin=
 	#反向代理
 	ProxyRequests Off
 	ProxyPass /api/ http://127.0.0.1:8000/api/
@@ -817,7 +817,7 @@ module.exports = {
 
 * 範例
 `nodejs\nodejs\example\file.js`
-```
+```gherkin=
 const fs = require('fs');
 const path = require('path');
 
@@ -854,26 +854,258 @@ const fileName = path.resolve(__dirname, './file/data.txt');
 	* I/O，包括"網路"I/O和"文件"I/O
 	* 想比於CPU計算和內存讀寫，I/O特點就是"慢"
 	* 如何在有限情況下提高I/O操作效率
+* stream
+	* 標準輸入輸出，pipe就是管道(符合水流管道的模型圖)
+	* process.stdin 獲取資料，直接通過管道傳遞給process.stdout
+		* process.stdin.pipe(process.stdout)
+	* 範例
+`nodejs\nodejs\example\stream.js`
+```gherkin=
+//標準輸入輸出
+// process.stdin.pipe(process.stdout)
 
+// const http = require('http')
+
+// const server = http.createServer((req, res) => {
+//     if(method === 'POST') {
+// 		req.pipe(res)
+//     }
+// })
+
+// server.listen(8000)
+
+
+
+// const fs = require('fs')
+// const path = require('path')
+
+// //兩文件名
+// const file1 =  path.resolve(__dirname, 'file/data.txt')
+// const file2 =  path.resolve(__dirname, 'file/data-bak.txt')
+
+// //讀取文件的stream物件
+// const readStream = fs.createReadStream(file1)
+// const writeStream = fs.createWriteStream(file2)
+
+// //copy，通過pipe
+// readStream.pipe(writeStream)
+
+// readStream.on('data', chunk => {
+//     console.log(chunk.toString())
+// })
+
+// //資料讀取完成，即copy完成
+// readStream.on('end', function () {
+//     console.log('copyed!')
+// })
+
+
+
+const http = require('http')
+const fs = require('fs')
+const path = require('path')
+
+const file1 =  path.resolve(__dirname, 'file/data.txt')
+const server = http.createServer((req, res) => {
+    if(req.method === 'GET') {
+        const readStream = fs.createReadStream(file1)
+		readStream.pipe(res)
+    }
+})
+
+server.listen(8000)
+
+```
 #### 日誌功能開發和使用
+
+* 範例
+`nodejs/nodejs/src/utils/log.js`
+```gherkin=
+const fs = require('fs')
+const path = require('path')
+const { LOG_CONF } = require('../config/db');
+
+//寫日誌
+function writeLog(writeStream, log) {
+    writeStream.write(log + '\n')
+}
+
+//write stream
+function createWriteStream(fileName) {
+    const fullFileName= path.join(__dirname, '../', '../', 'logs', fileName)
+    const writeStream = fs.createWriteStream(fullFileName, {
+        flags: 'a'
+    })
+    return writeStream
+}
+
+//寫訪問日誌
+const accessWriteStream = createWriteStream('access.log')
+function access(log) {
+    if(LOG_CONF) {
+        console.log(log)
+        return
+    }
+    writeLog(accessWriteStream, log)
+}
+
+// //寫錯誤日誌
+// const errorWriteStream = createWriteStream('errors.log')
+// function error(log) {
+//     writeLog(errorWriteStream, log)
+// }
+
+// //寫事件日誌
+// const eventWriteStream = createWriteStream('event.log')
+// function event(log) {
+//     writeLog(eventWriteStream, log)
+// }
+
+module.exports = {
+    access,
+    // error,
+    // event
+}
+```
+
+`nodejs/nodejs/app.js`
+```gherkin=
+//寫access log
+	access(`${req.method} -- ${req.url} -- ${req.headers['user-agent']} -- ${Date.now()}`)
+```
 
 #### 日誌文件拆分，日誌內容分析
 
+##### 日誌拆分
+* 日誌內容會慢慢累積，放在一個文件中不好處理
+* 按照時間劃分日誌文件，如：2019-10-27
+* 實現方式：linux的crontab命令，即定時任務
+* crontab
+	* 設定定時任務，格式：***** command
+	* 將access.log cpoy成2019-10-27.access.log
+	* 清空access.log，繼續累積日誌
+	* 範例
+	`nodejs/nodejs/utils/copy.sh`
+	```gherkin=
+	#!/bin/sh
+	cd /opt/lampp/htdocs/nodejs/nodejs/logs
+	cp access.log $(data +%Y-%m-%d).access.log
+	echo "" > access.log
+	```
+	* terminal 輸入crontab -e，然後增加以下一行(每天0點執行)
+	> \* 0 * * * sh /opt/lampp/htdocs/nodejs/nodejs/src/utils/copy.sh
 
+##### 日誌分析
 
+* 如何針對access.log日誌，分析chrome的佔比
+* 日誌是按行儲存，一行為一條
+* 使用nodejs readline(基於stream，效率高)
+* 範例
+`nodejs/nodejs/src/utils/readline.js`
+```gherkin=
+const fs = require('fs')
+const path = require('path')
+const readline = require('readline')
+const { LOG_CONF } = require('../config/db');
 
+//文件名
+const fileName= path.join(__dirname, '../', '../', 'logs', 'access.log')
+//read Stream
+const readStream = fs.createReadStream(fileName)
+//readline
+const readline = fs.createInterface({
+    input: readStream
+})
 
+let chromeNum = 0
+let sum = 0
 
+readline.on('line',  (lineData) => {
+    if(!lineData) {
+        return
+    }
 
+    //總行數
+    sum++
 
+    const arr = lineData.split(' -- ')
+    if(arr[2] && arr[2].indexOf('Chrome') > 0) {
+        //累加chrome數量
+        chromeNum++
+    }
+})
 
+readline.on('close', () => {
+    console.log('chrome 佔比：'+sum/chromeNum)
+})
 
+```
+#### 日誌- 總結
+* 日誌對server端的重要性，相當於人的眼睛
+* I/O性能瓶頸，使用stream提高性能
+* 使用crontab拆分日誌文件，使用readline分析日誌內容
 
+### 安全
 
+* sql注入：竊取資料庫內容
+* XSS攻擊：竊取cookie內容
+* 密碼加密：保障使用者資料安全
 
+#### sql注入
 
+* 最原始，最簡單的攻擊，從有了web2.0就有sql注入
+* 攻擊方式：輸入一個sql片段，最終拼成一段攻擊code
+* 預防措施：使用mysql escape函數處理輸入內容
 
+#### XSS攻擊
+*  前端最熟悉的攻擊方式，但後端更應該掌握
+* 攻擊方式：在頁面中參雜js code，以獲取網頁訊息
+* 預防措施：轉換產生js的特殊字符
 
+| 轉換前 | 轉換後 |
+| -- | -- | 
+| & | \&amp; |
+| < | \&lt; |
+| > | \&gt; |
+| " | \&quot; |
+| ' | \&#x27; |
+| / | \&#x2F; |
+
+#### 密碼加密
+
+* 萬一資料庫資料外洩，應把重要訊息加密
+* 攻擊方式：獲取帳號和密碼，再去登入其他系統
+* 預防措施：將密碼加密，即便拿到也不知道是明文
+* 範例
+`nodejs/nodejs/src/utils/crypto.js`
+```gherkin=
+const crypto = require('crypto')
+
+//key
+const SERECT_KEY = '2K3NFFdf49290548523sJIOfdFr455fd'
+
+//md5加密
+function md5(content) {
+    let md5 = crypto.createHash('md5')
+    return md5.update(content).digest('hex')
+}
+
+function getPassword(passwd) {
+    const str = `password=${passwd}&key=${SERECT_KEY}`
+    return md5(str)
+}
+
+module.exports = {
+    getPassword,
+    md5
+}
+```
+
+### 總結
+
+* 如何預防sql注入
+* 如何預防xss攻擊
+* 如何加密密碼
 
 ## express和koa2
 

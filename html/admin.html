@@ -93,7 +93,7 @@
         // 加载数据
         get(url).then(res => {
             if (res.errno !== 0) {
-                alert('資料錯誤')
+                location.href = './login.html'
                 return
             }
 
