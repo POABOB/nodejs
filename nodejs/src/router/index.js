@@ -31,7 +31,9 @@ const handleIndexRouter = (req, res) => {
 		const result = getList(author, keyword);
 
 		return result.then(listData => {
-			return new SuccessModel(listData);
+			res.json(
+				new SuccessModel(listData)
+				);
 		});
 	}
 
